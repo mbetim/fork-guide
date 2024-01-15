@@ -7,6 +7,7 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import { restaurants } from "~/server/db/schema/restaurants";
+import { createRestaurantSchema } from "~/shared/dtos/create-restaurant.dto";
 
 export const restaurantsRouter = createTRPCRouter({
   hello: publicProcedure
@@ -17,12 +18,16 @@ export const restaurantsRouter = createTRPCRouter({
       };
     }),
 
-  create: protectedProcedure
-    .input(z.object({ name: z.string().min(1) }))
+  create: publicProcedure
+    .input(createRestaurantSchema)
     .mutation(async ({ ctx, input }) => {
-      await ctx.db.insert(restaurants).values({
-        name: input.name,
-      });
+      return await ctx.db
+        .insert(restaurants)
+        .values({
+          name: input.name,
+          description: input.description,
+        })
+        .returning();
     }),
 
   getAll: publicProcedure.query(({ ctx }) => {
